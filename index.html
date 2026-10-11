@@ -36,8 +36,9 @@
   #accel { position: absolute; left: 50%; top: 50%; width: 220px;
            transform: translate(-50%, -50%) rotate(-90deg);
            touch-action: none; }                   /* évite que la page défile pendant qu'on pousse */
-  #accel::-webkit-slider-thumb { background: #ea580c; }
-  #accel::-moz-range-thumb { background: #ea580c; }
+  /* Poignée rectangulaire (type "fader") : 30 px dans le sens de la course, 64 px de large une fois le curseur redressé */
+  #accel::-webkit-slider-thumb { background: #ea580c; width: 30px; height: 64px; border-radius: 6px; margin-top: -24px; }
+  #accel::-moz-range-thumb { background: #ea580c; width: 30px; height: 64px; border-radius: 6px; }
   .accelside { display: flex; flex-direction: column; align-items: center; gap: 16px; }
   #speed { font-size: 2.2rem; font-weight: 700; min-width: 140px; text-align: center; }
 
@@ -56,7 +57,7 @@
 </head>
 <body>
   <div class="top">
-    <h1>Servo micro:bit <small style="opacity:.4">v15</small></h1>
+    <h1>Servo micro:bit <small style="opacity:.4">v17</small></h1>
     <button id="connect">Connecter le micro:bit</button>
   </div>
   <div id="status">Non connecté</div>
@@ -64,7 +65,7 @@
   <div class="box">
     <!-- Le curseur va de -100 à +100 : 0 (le milieu) correspond à 90°. La conversion en degrés est faite dans le script. -->
     <input type="range" id="slider" min="-100" max="100" step="1" value="0" disabled>
-    <div class="scale"><span>55° gauche</span><span>90°</span><span>droite 125°</span></div>
+    <div class="scale"><span>40° gauche</span><span>90°</span><span>droite 140°</span></div>
     <div id="angle">--°</div>
     <button id="reset" disabled>Retour 90°</button>
   </div>
@@ -244,7 +245,7 @@ async function connect() {
 
 /* ---------- Réglage du trim ---------- */
 function setTrim(t) {
-  trim = Math.max(-TRIM_MAX, Math.min(TRIM_MAX, t));   // reste entre -10 et +10
+  trim = Math.max(-TRIM_MAX, Math.min(TRIM_MAX, t));   // reste entre -15 et +15
   showTrim(trim);
   try { localStorage.setItem('servoTrim', String(trim)); } catch (e) {}   // mémorisé sur le téléphone
   send('T', 'T' + trim);
