@@ -12,7 +12,7 @@
   h1 { font-size: 1.15rem; margin: 0; }
   .top { width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   #status { font-size: .9rem; opacity: .8; text-align: center; margin-top: -4px; }   /* ligne d'état / erreurs */
-  #angle { font-size: 2.6rem; font-weight: 700; line-height: 1; text-align: center; }                      /* angle affiché en grand */
+  #angle { font-size: 1rem; font-weight: 700; line-height: 1; text-align: center; }                      /* angle affiché en grand */
   .box { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 8px; }
   .row { display: flex; gap: 12px; align-items: center; }
   .scale { display: flex; justify-content: space-between; font-size: .8rem; opacity: .6; }
@@ -66,7 +66,7 @@
     <!-- Le curseur va de -100 à +100 : 0 (le milieu) correspond à 90°. La conversion en degrés est faite dans le script. -->
     <input type="range" id="slider" min="-100" max="100" step="1" value="0" disabled>
     <div class="scale"><span>40° Babord</span><span>barre à 0°</span><span>Tribord 40°</span></div>
-    <div id="angle">--° angle du servo</div>
+    <div id="angle">--° angle du servo moteur</div>
     <button id="reset" disabled>Retour barre à 0°</button>
   </div>
 
@@ -155,7 +155,7 @@ function setConnected(on) {
   $('connect').textContent = on ? 'Déconnecter' : 'Connecter le micro:bit';
   $('status').textContent = on ? 'Connecté à ' + device.name : 'Non connecté';
   if (!on) {
-    $('angle').textContent = '--°'; $('speed').textContent = '--%';
+    $('angle').textContent = '--° servo'; $('speed').textContent = '--%';
     $('accel').value = 0; lastSpeed = null;
     rxChar = null; for (const k in slot) delete slot[k];
   }
@@ -258,7 +258,7 @@ slider.addEventListener('pointerdown', () => dragging = true);                  
   slider.addEventListener(ev, () => dragging = false));                         // on le relâche
 slider.addEventListener('input', () => {                                        // il bouge
   const a = toAngle(parseInt(slider.value));       // position -> degrés
-  $('angle').textContent = a + '° angle servo';                // affichage immédiat
+  $('angle').textContent = a + '° servo';                // affichage immédiat
   if (a !== lastAngle) { lastAngle = a; send('S', 'S' + a); }   // on n'envoie que si l'angle a changé
 });
 
