@@ -51,13 +51,19 @@
   #connect { background: #16a34a; flex: none; padding: 8px 18px; font-size: 1rem; border-radius: 10px; }
   #reset { background: #6b7280; padding: 14px 0; font-size: 1.1rem; }
   #stop { background: #dc2626; flex: none; padding: 16px 28px; font-weight: 700; }
+  /* Distance sonar : affichée en bas à droite, seulement quand elle est < 150 cm et stable */
+  #dist { position: fixed; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+          padding: 8px 14px; border-radius: 12px; background: rgba(37,99,235,.92); color: #fff;
+          font-size: 1.6rem; font-weight: 700; line-height: 1.1; text-align: right;
+          pointer-events: none; display: none; }
+  #dist small { display: block; font-size: .7rem; font-weight: 400; opacity: .8; }
   .trimval { min-width: 80px; text-align: center; font-size: 1.4rem; font-weight: 600; }
   #trim0 { flex: 0 0 auto; padding: 12px 14px; background: #6b7280; font-size: 1rem; }
 </style>
 </head>
 <body>
   <div class="top">
-    <h1>Servo micro:bit <small style="opacity:.4">v17</small></h1>
+    <h1>Servo micro:bit <small style="opacity:.4">v18</small></h1>
     <button id="connect">Connecter le micro:bit</button>
   </div>
   <div id="status">Non connecté</div>
@@ -94,6 +100,9 @@
     </div>
   </div>
 
+  <!-- Distance du sonar (bas à droite, masquée tant qu'elle n'est pas valide) -->
+  <div id="dist"><small>Distance</small><span id="distval">-- cm</span></div>
+
 <script>
 /* =====================================================================
    PRINCIPE DE FONCTIONNEMENT
@@ -108,6 +117,8 @@
    - Le micro:bit répond par une ligne du type  "A:110,T:-3,M:60"
      (A = angle, T = trim, M = vitesse des moteurs en %) pour que la
      page affiche la valeur réelle.
+   - Le micro:bit envoie aussi la distance du sonar en cm : "D:123"
+     (dans la même ligne ou dans une ligne à part, peu importe).
    ===================================================================== */
 
 // Identifiants Bluetooth du service UART du micro:bit.
@@ -115,6 +126,28 @@
 const SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const RX = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // la page ÉCRIT ici  -> micro:bit
 const TX = '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // le micro:bit ÉCRIT ici -> page
+
+// ----- Réglages de l'affichage de la distance du sonar -----
+const DIST_MAX = 150;      // on n'affiche que sous cette distance (cm)
+const DIST_N   = 5;        // nombre de mesures consécutives analysées
+const DIST_TOL = 5;        // écart max (cm) entre la plus petite et la plus grande de ces mesures
+const DIST_TIMEOUT = 2000; // ms sans mesure valide -> l'affichage disparaît
+let distHist = [], distTimer = null;
+
+function hideDist() { $('dist').style.display = 'none'; }
+function onDist(d) {
+  if (!(d > 0)) { distHist = []; hideDist(); return; }    // 0 / négatif / NaN = pas d'écho : mesure ignorée
+  distHist.push(d);
+  if (distHist.length > DIST_N) distHist.shift();         // on garde les N dernières mesures
+  const mn = Math.min(...distHist), mx = Math.max(...distHist);
+  const coherent = distHist.length === DIST_N && (mx - mn) <= DIST_TOL;   // variation faible
+  if (coherent && mx < DIST_MAX) {                        // proche ET stable : on affiche la moyenne
+    const avg = distHist.reduce((a, b) => a + b, 0) / distHist.length;
+    $('distval').textContent = Math.round(avg) + ' cm';
+    $('dist').style.display = 'block';
+    clearTimeout(distTimer); distTimer = setTimeout(hideDist, DIST_TIMEOUT);   // disparaît si plus de mesures
+  } else if (d >= DIST_MAX) { hideDist(); }               // objet trop loin : on masque tout de suite
+}
 
 const TRIM_MAX = 15;                               // trim limité à ±15°
 const A_MIN = 40, A_CENTER = 90, A_MAX = 140;      // limites d'angle et centre
@@ -158,6 +191,7 @@ function setConnected(on) {
     $('angle').textContent = '--° servo'; $('speed').textContent = '--%';
     $('accel').value = 0; lastSpeed = null;
     rxChar = null; for (const k in slot) delete slot[k];
+    distHist = []; clearTimeout(distTimer); hideDist();
   }
 }
 
@@ -202,6 +236,8 @@ function onData(e) {
         if (!dragging) $('slider').value = toPos(parseInt(v));   // cale le curseur (sauf si on le tient)
       } else if (k === 'T') {
         showTrim(parseInt(v) || 0);                // affiche le trim réel
+      } else if (k === 'D') {
+        onDist(parseFloat(v));                     // distance du sonar (cm)
       } else if (k === 'M') {
         const m = parseInt(v) || 0;
         $('speed').textContent = m + '%';          // affiche la vitesse réelle des moteurs
