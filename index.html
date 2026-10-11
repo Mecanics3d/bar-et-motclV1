@@ -66,7 +66,7 @@
     <!-- Le curseur va de -100 à +100 : 0 (le milieu) correspond à 90°. La conversion en degrés est faite dans le script. -->
     <input type="range" id="slider" min="-100" max="100" step="1" value="0" disabled>
     <div class="scale"><span>40° Babord</span><span>barre à 0°</span><span>Tribord 40°</span></div>
-    <div id="angle">--° angle du servo moteur </div>
+    <div id="angle">--° angle du servo</div>
     <button id="reset" disabled>Retour barre à 0°</button>
   </div>
 
@@ -258,7 +258,7 @@ slider.addEventListener('pointerdown', () => dragging = true);                  
   slider.addEventListener(ev, () => dragging = false));                         // on le relâche
 slider.addEventListener('input', () => {                                        // il bouge
   const a = toAngle(parseInt(slider.value));       // position -> degrés
-  $('angle').textContent = a + '°';                // affichage immédiat
+  $('angle').textContent = a + '° angle servo';                // affichage immédiat
   if (a !== lastAngle) { lastAngle = a; send('S', 'S' + a); }   // on n'envoie que si l'angle a changé
 });
 
