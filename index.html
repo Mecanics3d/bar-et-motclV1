@@ -65,9 +65,9 @@
   <div class="box">
     <!-- Le curseur va de -100 à +100 : 0 (le milieu) correspond à 90°. La conversion en degrés est faite dans le script. -->
     <input type="range" id="slider" min="-100" max="100" step="1" value="0" disabled>
-    <div class="scale"><span>40° gauche</span><span>90°</span><span>droite 140°</span></div>
+    <div class="scale"><span>40° Babord</span><span>barre à 0°</span><span>Tribord 40°</span></div>
     <div id="angle">--°</div>
-    <button id="reset" disabled>Retour 90°</button>
+    <button id="reset" disabled>Retour barre à 0°</button>
   </div>
 
   <div class="box">
@@ -80,9 +80,9 @@
     </div>
   </div>
 
-  <!-- NOUVEAU : accélérateur des 2 moteurs (M1 et M2, synchronisés) -->
+  <!-- NOUVEAU : accélérateur des 2 moteurs (M2 et M3, synchronisés) -->
   <div class="box">
-    <label style="text-align:center">Accélérateur (moteurs M1 + M2)</label>
+    <label style="text-align:center">Accélérateur (moteurs M2 + M3)</label>
     <div class="accel">
       <div class="vwrap">
         <input type="range" id="accel" min="0" max="100" step="1" value="0" disabled>
@@ -102,7 +102,7 @@
    - La page envoie de petites commandes texte, une par ligne :
          S<angle>   ex. S110  -> aller à l'angle 110°
          T<trim>    ex. T-3   -> régler le trim à -3°
-         M<vitesse> ex. M60   -> moteurs M1 et M2 à 60 % (0 = arrêt)
+         M<vitesse> ex. M60   -> moteurs M2 et M3 à 60 % (0 = arrêt)
          C                    -> retour à 90°
          ?                    -> demander l'état actuel
    - Le micro:bit répond par une ligne du type  "A:110,T:-3,M:60"
@@ -262,7 +262,7 @@ slider.addEventListener('input', () => {                                        
   if (a !== lastAngle) { lastAngle = a; send('S', 'S' + a); }   // on n'envoie que si l'angle a changé
 });
 
-/* ---------- Accélérateur (moteurs M1 + M2) ----------
+/* ---------- Accélérateur (moteurs M2 + M3) ----------
    Le curseur vertical va de 0 à 100 (%). Il reste où on le laisse
    (comme une manette de gaz) ; le bouton STOP le ramène à 0. */
 const accel = $('accel');
